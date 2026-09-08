@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IDECO AnyImage - Tạo link banner Facebook/Zalo</title>
+<style>
+:root{--b:#1267e5;--bd:#d9e0ea;--txt:#172033;--mut:#697386;--ok:#087a55;--bad:#b42318;--bg:#f5f7fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--txt)}
+.wrap{max-width:980px;margin:28px auto;padding:0 16px}
+.hero{padding:24px;border-radius:18px;background:linear-gradient(135deg,#0c4fb8,#1673ee);color:#fff;box-shadow:0 12px 28px rgba(18,103,229,.18)}
+.hero h1{margin:0 0 8px;font-size:27px}.hero p{margin:0;line-height:1.55}
+.card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:20px;margin-top:18px;box-shadow:0 5px 16px rgba(16,24,40,.05)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+label{display:block;font-size:14px;font-weight:700;margin:13px 0 6px}
+input{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:14px}
+input:focus{outline:2px solid rgba(18,103,229,.15);border-color:var(--b)}
+.help{font-size:12px;color:var(--mut);line-height:1.45;margin-top:5px}
+.preview{border:2px dashed #ced7e3;border-radius:14px;min-height:280px;display:flex;align-items:center;justify-content:center;padding:10px;background:#fafbfc;color:var(--mut);overflow:hidden}
+.preview img{max-width:100%;max-height:430px;border-radius:9px;display:block}
+.row{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+button{border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer;font-size:14px}
+.primary{background:var(--b);color:#fff}.secondary{background:#eef4ff;color:#174ea6}.green{background:#e9f8f2;color:#087957}
+button:disabled{opacity:.55;cursor:not-allowed}
+.status{margin-top:13px;font-size:13px;line-height:1.5;min-height:22px;font-weight:700}
+.result{margin-top:12px;padding:14px;border-radius:12px;background:#f1f7ff;border:1px solid #cfe0ff;display:none}
+.result input{background:#fff;font-weight:700}
+.note{padding:12px 14px;border-radius:10px;background:#fff7e6;color:#775000;font-size:13px;line-height:1.55;margin-top:14px}
+.steps{font-size:13px;line-height:1.65;color:#3e4a5f}
+code{background:#eef1f5;padding:2px 5px;border-radius:5px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.hero h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>IDECO AnyImage</h1>
+    <p>Upload banner lên GitHub Pages, tự tạo trang Open Graph và trả về 1 link để dán lên Facebook/Zalo.</p>
+  </div>
+
+  <div class="card grid">
+    <div>
+      <h2 style="margin-top:0;font-size:19px">1. Kết nối GitHub</h2>
+      <label>GitHub Token</label>
+      <input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
+      <div class="help">Token chỉ dùng trong phiên trình duyệt hiện tại, ứng dụng không lưu token vào localStorage.</div>
+
+      <label>GitHub Owner</label>
+      <input id="owner" value="duocphamideco">
+
+      <label>Repository</label>
+      <input id="repo" value="danhmucthuoc">
+
+      <label>Branch</label>
+      <input id="branch" value="main">
+
+      <label>Website gốc</label>
+      <input id="siteBase" value="https://duocphamideco.github.io/danhmucthuoc/">
+
+      <div class="row">
+        <button class="secondary" id="testBtn">Kiểm tra GitHub</button>
+      </div>
+      <div id="githubStatus" class="status"></div>
+    </div>
+
+    <div>
+      <h2 style="margin-top:0;font-size:19px">2. Chọn banner</h2>
+      <div id="preview" class="preview">Chưa chọn ảnh</div>
+      <label>Ảnh banner</label>
+      <input id="file" type="file" accept="image/jpeg,image/png,image/webp">
+      <div class="help">Khuyến nghị JPG/PNG, từ 640×320 trở lên; ảnh nhẹ sẽ tải nhanh hơn khi Facebook/Zalo quét link.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;font-size:19px">3. Nội dung chia sẻ</h2>
+    <label>Website đích khi người xem bấm banner</label>
+    <input id="target" value="https://duocphamideco.github.io/danhmucthuoc/">
+
+    <label>Tiêu đề</label>
+    <input id="title" value="DANH MỤC THUỐC OTC - ETC | IDECO">
+
+    <label>Mô tả</label>
+    <input id="desc" value="Bấm vào banner để xem chi tiết danh mục thuốc IDECO.">
+
+    <div class="row">
+      <button class="primary" id="createBtn">TẠO LINK CHIA SẺ</button>
+    </div>
+    <div id="status" class="status"></div>
+
+    <div id="result" class="result">
+      <b>Link để dán vào Facebook/Zalo:</b>
+      <input id="shareUrl" readonly>
+      <div class="row">
+        <button class="green" id="copyBtn">Copy link</button>
+        <button class="secondary" id="openBtn">Mở kiểm tra</button>
+      </div>
+    </div>
+
+    <div class="note">
+      Facebook/Zalo thường lưu cache ảnh xem trước. Ứng dụng này tạo <b>tên ảnh và link mới mỗi lần</b>, nhờ vậy hạn chế tình trạng hiện banner cũ.
+      Sau khi vừa tạo link, GitHub Pages đôi khi cần một khoảng ngắn để file mới xuất hiện công khai.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;font-size:19px">Cách dùng lần đầu</h2>
+    <div class="steps">
+      1) Tạo GitHub Fine-grained Personal Access Token cho repository <code>danhmucthuoc</code>, quyền <b>Contents: Read and write</b>.<br>
+      2) Dán token vào ô GitHub Token và bấm <b>Kiểm tra GitHub</b>.<br>
+      3) Chọn banner, nhập tiêu đề/mô tả rồi bấm <b>TẠO LINK CHIA SẺ</b>.<br>
+      4) Copy link kết quả và <b>dán link đó</b> vào Facebook hoặc Zalo. Không upload ảnh thủ công lên bài đăng.<br>
+      5) Facebook/Zalo đọc thẻ Open Graph và tự hiển thị banner; người xem bấm vào thẻ sẽ mở website đích.
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let selectedFile=null, imageMeta={width:1200,height:630,type:"image/jpeg"}, previewURL="";
+
+function setStatus(el,msg,ok=true){el.textContent=msg;el.style.color=ok?"#087a55":"#b42318"}
+function cleanBase(u){return u.replace(/\/+$/,"")+"/"}
+function safeSlug(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,50)||"banner"}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function utf8ToBase64(str){
+  const bytes=new TextEncoder().encode(str); let bin="";
+  const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk) bin+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+  return btoa(bin);
+}
+function arrayBufferToBase64(buf){
+  const bytes=new Uint8Array(buf); let bin=""; const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk) bin+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+  return btoa(bin);
+}
+async function gh(path,opts={}){
+  const token=$("token").value.trim(), owner=$("owner").value.trim(), repo=$("repo").value.trim();
+  if(!token) throw new Error("Chưa nhập GitHub Token.");
+  const res=await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${path}`,{
+    ...opts,
+    headers:{
+      "Accept":"application/vnd.github+json",
+      "Authorization":`Bearer ${token}`,
+      "X-GitHub-Api-Version":"2022-11-28",
+      ...(opts.headers||{})
+    }
+  });
+  if(!res.ok){
+    let detail=""; try{const j=await res.json();detail=j.message||""}catch{}
+    throw new Error(`GitHub lỗi ${res.status}${detail?": "+detail:""}`);
+  }
+  return res.status===204?null:res.json();
+}
+async function putFile(path,base64,message){
+  const branch=$("branch").value.trim()||"main";
+  return gh(`contents/${path.split("/").map(encodeURIComponent).join("/")}`,{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message,content:base64,branch})
+  });
+}
+
+$("file").addEventListener("change",e=>{
+  selectedFile=e.target.files?.[0]||null;
+  if(!selectedFile)return;
+  if(previewURL)URL.revokeObjectURL(previewURL);
+  previewURL=URL.createObjectURL(selectedFile);
+  $("preview").innerHTML=`<img src="${previewURL}" alt="preview">`;
+  const img=new Image();
+  img.onload=()=>imageMeta={width:img.naturalWidth,height:img.naturalHeight,type:selectedFile.type||"image/jpeg"};
+  img.src=previewURL;
+});
+
+$("testBtn").addEventListener("click",async()=>{
+  setStatus($("githubStatus"),"Đang kiểm tra...",true);
+  try{
+    const branch=$("branch").value.trim()||"main";
+    const data=await gh(`branches/${encodeURIComponent(branch)}`);
+    setStatus($("githubStatus"),`Kết nối thành công. Branch: ${data.name}`,true);
+  }catch(e){setStatus($("githubStatus"),e.message,false)}
+});
+
+$("createBtn").addEventListener("click",async()=>{
+  const btn=$("createBtn");
+  $("result").style.display="none";
+  if(!selectedFile){setStatus($("status"),"Anh chọn banner trước nhé.",false);return}
+  const target=$("target").value.trim(), title=$("title").value.trim(), desc=$("desc").value.trim();
+  const siteBase=cleanBase($("siteBase").value.trim());
+  try{new URL(target);new URL(siteBase)}catch{setStatus($("status"),"URL website chưa hợp lệ.",false);return}
+
+  btn.disabled=true;
+  try{
+    const now=new Date();
+    const stamp=now.toISOString().replace(/\D/g,"").slice(0,14);
+    const rnd=Math.random().toString(36).slice(2,8);
+    const slug=`${safeSlug(title)}-${stamp}-${rnd}`;
+    let ext=(selectedFile.name.split(".").pop()||"jpg").toLowerCase();
+    if(!["jpg","jpeg","png","webp"].includes(ext)) ext="jpg";
+    const imagePath=`share/assets/${slug}.${ext}`;
+    const pagePath=`share/${slug}.html`;
+    const imageUrl=new URL(imagePath,siteBase).href;
+    const pageUrl=new URL(pagePath,siteBase).href;
+
+    setStatus($("status"),"1/2 Đang upload banner lên GitHub...",true);
+    const buf=await selectedFile.arrayBuffer();
+    await putFile(imagePath,arrayBufferToBase64(buf),`Add social banner ${slug}`);
+
+    const page=`<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(desc)}">
+<link rel="canonical" href="${escapeHtml(pageUrl)}">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="${escapeHtml(pageUrl)}">
+<meta property="og:title" content="${escapeHtml(title)}">
+<meta property="og:description" content="${escapeHtml(desc)}">
+<meta property="og:image" content="${escapeHtml(imageUrl)}">
+<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}">
+<meta property="og:image:type" content="${escapeHtml(imageMeta.type)}">
+<meta property="og:image:width" content="${imageMeta.width}">
+<meta property="og:image:height" content="${imageMeta.height}">
+<meta property="og:image:alt" content="${escapeHtml(title)}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escapeHtml(title)}">
+<meta name="twitter:description" content="${escapeHtml(desc)}">
+<meta name="twitter:image" content="${escapeHtml(imageUrl)}">
+
+<style>
+html,body{margin:0;padding:0;background:#fff;font-family:Arial,sans-serif}
+a{display:block;text-decoration:none}
+img{display:block;width:100%;max-width:1400px;height:auto;margin:0 auto}
+p{text-align:center;padding:15px}
+</style>
+</head>
+<body>
+<a href="${escapeHtml(target)}" id="go">
+<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}">
+</a>
+<p><a href="${escapeHtml(target)}">Bấm vào đây để xem chi tiết</a></p>
+<script>
+(function(){
+  var ua=navigator.userAgent||"";
+  var isBot=/facebookexternalhit|Facebot|Twitterbot|Zalo|bot|crawler|spider/i.test(ua);
+  if(!isBot){setTimeout(function(){location.replace(${JSON.stringify(target)})},700);}
+})();
+<\/script>
+</body>
+</html>`;
+
+    setStatus($("status"),"2/2 Đang tạo trang link chia sẻ...",true);
+    await putFile(pagePath,utf8ToBase64(page),`Add social share page ${slug}`);
+
+    $("shareUrl").value=pageUrl;
+    $("result").style.display="block";
+    setStatus($("status"),"Đã tạo xong link. Copy link bên dưới để dán vào Facebook/Zalo.",true);
+  }catch(e){
+    setStatus($("status"),e.message,false);
+  }finally{btn.disabled=false}
+});
+
+$("copyBtn").addEventListener("click",async()=>{
+  const v=$("shareUrl").value;
+  try{await navigator.clipboard.writeText(v);setStatus($("status"),"Đã copy link.",true)}
+  catch{$("shareUrl").select();document.execCommand("copy");setStatus($("status"),"Đã copy link.",true)}
+});
+$("openBtn").addEventListener("click",()=>{const v=$("shareUrl").value;if(v)window.open(v,"_blank","noopener")});
+</script>
+</body>
+</html>
